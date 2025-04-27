@@ -151,6 +151,19 @@ class LoginApp:
         container = tk.Frame(parent, bg=self.colors['bg_medium'])
         container.pack(fill="x", pady=10)
 
+        # Add label above input
+        label_text = "Servidor" if "Servidor" in placeholder else "Login" if "Login" in placeholder else "Senha"
+        label = tk.Label(
+            container,
+            text=label_text,
+            font=("Helvetica", 12, "bold"),  # Made font bigger and bold
+            fg=self.colors['text'],           # Changed to main text color
+            bg=self.colors['bg_medium'],
+            anchor="w",
+            pady=3                            # Added padding
+        )
+        label.pack(fill="x", pady=(0, 8))    # Increased spacing between label and input
+
         entry = tk.Entry(
             container,
             font=("Helvetica", 11),
@@ -159,7 +172,7 @@ class LoginApp:
             fg=self.colors['text'],
             insertbackground=self.colors['text'],
             relief="flat",
-            justify="center"
+            justify="left"  # Changed to left alignment for better readability
         )
         entry.pack(fill="x", ipady=8)
 
