@@ -6,6 +6,8 @@ from estrategia import EstrategiaTrading
 from log_system import LogSystem
 import threading
 import time
+import random
+import math
 
 class PainelApp:
     def __init__(self, root):
@@ -27,6 +29,21 @@ class PainelApp:
         self.root.configure(bg=self.colors['bg_dark'])
         self.root.resizable(False, False)
         self.centralizar_janela(900, 650)  # Slightly larger for better spacing
+
+        # Canvas for dollar animation (place it behind all other widgets)
+        self.canvas = tk.Canvas(
+            self.root,
+            bg=self.colors['bg_dark'],
+            highlightthickness=0,
+            width=900,
+            height=650
+        )
+        self.canvas.place(x=0, y=0, relwidth=1, relheight=1)
+        self.canvas.lower()  # Put canvas behind all other widgets
+        
+        # Dollar symbols for animation
+        self.dollar_symbols = []
+        self.start_dollar_animation()
 
         self.ativo_selecionado = tk.StringVar()
         self.timeframe_selecionado = tk.StringVar()
@@ -67,9 +84,80 @@ class PainelApp:
         frame = tk.Frame(parent, bg=color1, height=2)
         return frame
 
+    def create_dollar_symbol(self):
+        x = random.randint(0, self.root.winfo_width())
+        # More varied symbols with money theme (focusing on the most visible ones)
+        symbol = random.choice(['💰', '💵', '💸', '$'])
+        
+        # Random semi-transparent green color
+        alpha = random.randint(5, 15)  # Even more transparent (5-15% opacity)
+        color = f'{self.colors["success"]}{alpha:02x}'
+        
+        # Random size but keep it subtle
+        size = random.randint(12, 20)
+        
+        # Create the symbol with random rotation
+        text_id = self.canvas.create_text(
+            x, -30,
+            text=symbol,
+            font=('Helvetica', size),
+            fill=color,
+            angle=random.randint(-30, 30)  # Random rotation
+        )
+        
+        # Slower falling speed for better effect
+        speed = random.uniform(0.5, 1.2)
+        
+        self.dollar_symbols.append({
+            'id': text_id,
+            'speed': speed,
+            'angle': random.uniform(-0.5, 0.5)  # Slight rotation during fall
+        })
+
+    def animate_dollars(self):
+        if not hasattr(self, 'canvas'):
+            return
+            
+        for dollar in self.dollar_symbols[:]:
+            # Move dollar symbol down with slight side movement
+            self.canvas.move(
+                dollar['id'],
+                math.sin(time.time() * dollar['speed']) * 0.3,  # Subtle side-to-side movement
+                dollar['speed']
+            )
+            
+            # Rotate symbol slightly
+            self.canvas.itemconfig(
+                dollar['id'],
+                angle=self.canvas.itemcget(dollar['id'], 'angle') + dollar['angle']
+            )
+            
+            # Get position
+            pos = self.canvas.coords(dollar['id'])
+            
+            # Remove if it's off screen
+            if pos[1] > self.root.winfo_height():
+                self.canvas.delete(dollar['id'])
+                self.dollar_symbols.remove(dollar)
+        
+        # Add new dollar symbols randomly (reduced frequency)
+        if random.random() < 0.02:  # 2% chance each frame for fewer symbols
+            self.create_dollar_symbol()
+        
+        # Schedule next animation frame
+        self.root.after(50, self.animate_dollars)
+
+    def start_dollar_animation(self):
+        # Create initial dollar symbols
+        for _ in range(5):
+            self.create_dollar_symbol()
+        
+        # Start animation
+        self.animate_dollars()
+
     def setup_ui(self):
         # Header Section with gradient
-        header_frame = tk.Frame(self.root, bg=self.colors['bg_dark'], pady=20)
+        header_frame = tk.Frame(self.root, bg='', pady=20)  # Transparent background
         header_frame.pack(fill="x", padx=20)
         
         gradient = self.create_gradient_frame(header_frame, self.colors['accent'], self.colors['bg_dark'])
@@ -94,7 +182,7 @@ class PainelApp:
         self.saldo_label.pack(pady=10)
 
         # Options Section
-        options_frame = tk.Frame(self.root, bg=self.colors['bg_dark'])
+        options_frame = tk.Frame(self.root, bg='')  # Transparent background
         options_frame.pack(pady=20, padx=30)
 
         # Create a modern looking container for options
@@ -132,7 +220,7 @@ class PainelApp:
         self.btn_atualizar_ativos.grid(row=0, column=2, padx=20, pady=5, sticky="w")
 
         # Control Buttons Section
-        button_frame = tk.Frame(self.root, bg=self.colors['bg_dark'])
+        button_frame = tk.Frame(self.root, bg='')  # Transparent background
         button_frame.pack(pady=20)
 
         self.btn_iniciar = tk.Button(
@@ -167,7 +255,7 @@ class PainelApp:
         self.btn_parar.grid(row=0, column=1, padx=10)
 
         # Logs Section
-        logs_frame = tk.Frame(self.root, bg=self.colors['bg_dark'])
+        logs_frame = tk.Frame(self.root, bg='')  # Transparent background
         logs_frame.pack(pady=20, fill="both", expand=True, padx=30)
 
         log_header = tk.Frame(logs_frame, bg=self.colors['bg_dark'])
@@ -212,7 +300,7 @@ class PainelApp:
         self.log_system.conectar_interface(self.text_log)
 
         # Footer with gradient
-        footer_frame = tk.Frame(self.root, bg=self.colors['bg_dark'])
+        footer_frame = tk.Frame(self.root, bg='')  # Transparent background
         footer_frame.pack(fill="x", pady=(0, 10))
         
         gradient = self.create_gradient_frame(footer_frame, self.colors['bg_dark'], self.colors['accent'])
