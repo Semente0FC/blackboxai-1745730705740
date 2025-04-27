@@ -6,8 +6,6 @@ from estrategia import EstrategiaTrading
 from log_system import LogSystem
 import threading
 import time
-import random
-import math
 
 class PainelApp:
     def __init__(self, root):
@@ -31,32 +29,7 @@ class PainelApp:
         
         self.root.configure(bg=self.colors['bg_dark'])
         self.root.resizable(False, False)
-        self.centralizar_janela(900, 650)  # Slightly larger for better spacing
-
-        # Create main container for all widgets
-        self.main_container = tk.Frame(self.root)
-        self.main_container.pack(fill="both", expand=True)
-
-        # Canvas for dollar animation (place it behind all widgets)
-        self.canvas = tk.Canvas(
-            self.main_container,
-            bg=self.colors['bg_dark'],
-            highlightthickness=0,
-            width=900,
-            height=650
-        )
-        self.canvas.place(x=0, y=0, relwidth=1, relheight=1)
-        
-        # Create content frame that will be above canvas
-        self.content_frame = tk.Frame(
-            self.main_container,
-            bg=self.colors['bg_dark']
-        )
-        self.content_frame.place(x=0, y=0, relwidth=1, relheight=1)
-        
-        # Dollar symbols for animation
-        self.dollar_symbols = []
-        self.start_dollar_animation()
+        self.centralizar_janela(900, 650)
 
         self.ativo_selecionado = tk.StringVar()
         self.timeframe_selecionado = tk.StringVar()
@@ -103,81 +76,14 @@ class PainelApp:
             fieldbackground=[('focus', self.colors['bg_light'])],
             bordercolor=[('focus', self.colors['accent'])])
 
-    def create_gradient_frame(self, parent, color1, color2):
-        frame = tk.Frame(parent, bg=color1, height=2)
-        return frame
-
-    def create_dollar_symbol(self):
-        x = random.randint(0, self.root.winfo_width())
-        # More varied symbols with money theme (focusing on the most visible ones)
-        symbol = random.choice(['💰', '💵', '💸', '$'])
-        
-        # Use a single semi-transparent color for better performance
-        color = '#1DB95430'  # Spotify green with 19% opacity
-        
-        # Random size but keep it subtle
-        size = random.randint(12, 20)
-        
-        # Create the symbol with random rotation
-        text_id = self.canvas.create_text(
-            x, -30,
-            text=symbol,
-            font=('Helvetica', size),
-            fill=color,
-            angle=random.randint(-20, 20)  # Slightly reduced rotation range
-        )
-        
-        # Slower falling speed for better effect
-        speed = random.uniform(0.5, 1.2)
-        
-        self.dollar_symbols.append({
-            'id': text_id,
-            'speed': speed,
-            'angle': random.uniform(-0.5, 0.5)  # Slight rotation during fall
-        })
-
-    def animate_dollars(self):
-        if not hasattr(self, 'canvas'):
-            return
-            
-        for dollar in self.dollar_symbols[:]:
-            # Move dollar symbol down with slight side movement
-            self.canvas.move(
-                dollar['id'],
-                math.sin(time.time() * dollar['speed']) * 0.2,  # More subtle side-to-side movement
-                dollar['speed']
-            )
-            
-            # Rotate symbol slightly
-            self.canvas.itemconfig(
-                dollar['id'],
-                angle=self.canvas.itemcget(dollar['id'], 'angle') + dollar['angle']
-            )
-            
-            # Get position
-            pos = self.canvas.coords(dollar['id'])
-            
-            # Remove if it's off screen
-            if pos[1] > self.root.winfo_height():
-                self.canvas.delete(dollar['id'])
-                self.dollar_symbols.remove(dollar)
-        
-        # Add new dollar symbols randomly (reduced frequency)
-        if random.random() < 0.015:  # 1.5% chance each frame for even fewer symbols
-            self.create_dollar_symbol()
-        
-        # Schedule next animation frame
-        self.root.after(60, self.animate_dollars)  # Slightly slower update for better performance
-
-    def start_dollar_animation(self):
-        # Create initial dollar symbols
-        for _ in range(5):
-            self.create_dollar_symbol()
-        
-        # Start animation
-        self.animate_dollars()
-
     def setup_ui(self):
+        # Main container
+        self.content_frame = tk.Frame(
+            self.root,
+            bg=self.colors['bg_dark']
+        )
+        self.content_frame.pack(fill="both", expand=True)
+
         # Create sidebar
         sidebar = tk.Frame(self.content_frame, bg=self.colors['sidebar_bg'], width=250)
         sidebar.pack(side="left", fill="y")
@@ -438,14 +344,14 @@ class PainelApp:
         self.text_log.config(yscrollcommand=self.scrollbar.set)
         self.log_system.conectar_interface(self.text_log)
 
-        # Status bar (like Spotify's player bar)
+        # Status bar
         status_bar = tk.Frame(
             self.content_frame,
             bg=self.colors['bg_light'],
             height=30
         )
         status_bar.pack(side="bottom", fill="x")
-        
+
         # Add status text to status bar
         status_text = tk.Label(
             status_bar,
@@ -466,15 +372,14 @@ class PainelApp:
         # Start balance update thread
         threading.Thread(target=self.atualizar_saldo_loop, daemon=True).start()
 
-    def add_labeled_widget(self, parent, label_text, row, widget):
-        tk.Label(
-            parent,
-            text=label_text,
-            font=("Helvetica", 12),
-            fg=self.colors['text'],
-            bg=self.colors['bg_medium']
-        ).grid(row=row, column=0, padx=10, pady=10, sticky="e")
-        widget.grid(row=row, column=1, pady=10, sticky="w")
+    def on_menu_hover(self, button, entering):
+        """Handle menu button hover effects"""
+        if button not in self.menu_buttons or button == self.menu_buttons[0]:
+            return
+        if entering:
+            button.configure(bg=self.colors['bg_light'])
+        else:
+            button.configure(bg=self.colors['sidebar_bg'])
 
     def create_combobox(self, parent, variable, values=None):
         combo = ttk.Combobox(
@@ -488,15 +393,6 @@ class PainelApp:
         if values:
             combo.current(1)
         return combo
-
-    def on_menu_hover(self, button, entering):
-        """Handle menu button hover effects"""
-        if button not in self.menu_buttons or button == self.menu_buttons[0]:
-            return
-        if entering:
-            button.configure(bg=self.colors['bg_light'])
-        else:
-            button.configure(bg=self.colors['sidebar_bg'])
 
     def create_entry(self, parent, variable):
         entry = tk.Entry(
