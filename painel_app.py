@@ -12,19 +12,16 @@ class PainelApp:
         self.root = root
         self.root.title("Future MT5 Trading Panel")
         
-        # Spotify-like color scheme
+        # Modern dark theme colors with Spotify style
         self.colors = {
-            'bg_dark': '#121212',      # Main background
-            'bg_medium': '#181818',     # Card background
-            'bg_light': '#282828',      # Hover state
-            'sidebar_bg': '#000000',    # Sidebar background
+            'bg_dark': '#121212',      # Spotify background
+            'bg_medium': '#181818',     # Spotify card color
             'accent': '#1DB954',        # Spotify green
             'accent_hover': '#1ed760',  # Lighter green
-            'success': '#1DB954',
-            'danger': '#E74C3C',
-            'text': '#FFFFFF',
-            'text_secondary': '#B3B3B3',
-            'divider': '#282828'
+            'success': '#1DB954',       # Spotify green
+            'danger': '#e74c3c',        # Keep original red
+            'text': '#FFFFFF',          # White text
+            'text_secondary': '#B3B3B3' # Gray text
         }
         
         self.root.configure(bg=self.colors['bg_dark'])
@@ -52,29 +49,19 @@ class PainelApp:
         style = ttk.Style()
         style.theme_use('clam')
 
-        # Configure Spotify-like Combobox
+        # Configure modern looking Combobox
         style.configure("TCombobox",
-            fieldbackground=self.colors['bg_light'],
-            background=self.colors['bg_light'],
+            fieldbackground=self.colors['bg_medium'],
+            background=self.colors['bg_medium'],
             foreground=self.colors['text'],
             arrowcolor=self.colors['accent'],
             selectbackground=self.colors['accent'],
             selectforeground=self.colors['text'])
-        
-        style.map('TCombobox',
-            fieldbackground=[('readonly', self.colors['bg_light'])],
-            selectbackground=[('readonly', self.colors['accent'])],
-            background=[('readonly', self.colors['bg_light'])])
 
-        # Configure Spotify-like Entry
+        # Configure modern looking Entry
         style.configure("TEntry",
-            fieldbackground=self.colors['bg_light'],
-            foreground=self.colors['text'],
-            borderwidth=0)
-        
-        style.map('TEntry',
-            fieldbackground=[('focus', self.colors['bg_light'])],
-            bordercolor=[('focus', self.colors['accent'])])
+            fieldbackground=self.colors['bg_medium'],
+            foreground=self.colors['text'])
 
     def setup_ui(self):
         # Main container
@@ -195,16 +182,16 @@ class PainelApp:
 
         self.btn_atualizar_ativos = tk.Button(
             asset_frame,
-            text="🔄 Atualizar",
+            text="🔄 Atualizar Ativos",
             command=self.carregar_ativos,
-            bg=self.colors['bg_light'],
+            bg=self.colors['accent'],
             fg=self.colors['text'],
-            font=("Helvetica", 10),
-            activebackground=self.colors['accent'],
+            font=("Helvetica", 10, "bold"),
+            activebackground=self.colors['accent_hover'],
             activeforeground=self.colors['text'],
             relief="flat",
             padx=15,
-            pady=5,
+            pady=8,
             cursor="hand2"
         )
         self.btn_atualizar_ativos.pack(side="left")
@@ -266,12 +253,10 @@ class PainelApp:
             font=("Helvetica", 14, "bold"),
             activebackground=self.colors['accent_hover'],
             relief="flat",
-            width=30,
+            width=25,
             state="disabled",
             cursor="hand2",
-            pady=12,
-            borderwidth=0,
-            highlightthickness=0
+            pady=12
         )
         self.btn_iniciar.grid(row=0, column=0, padx=10)
 
@@ -279,16 +264,14 @@ class PainelApp:
             button_frame,
             text="⏹ Parar Análise",
             command=self.parar_robô,
-            bg=self.colors['bg_light'],
+            bg=self.colors['danger'],
             fg=self.colors['text'],
             font=("Helvetica", 14, "bold"),
-            activebackground=self.colors['bg_dark'],
+            activebackground=self.colors['danger'],
             relief="flat",
-            width=25,
+            width=20,
             cursor="hand2",
-            pady=12,
-            borderwidth=0,
-            highlightthickness=0
+            pady=12
         )
         self.btn_parar.grid(row=0, column=1, padx=10)
 
