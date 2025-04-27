@@ -14,32 +14,45 @@ class PainelApp:
         self.root = root
         self.root.title("Future MT5 Trading Panel")
         
-        # Modern dark theme colors
+        # Spotify-like color scheme
         self.colors = {
-            'bg_dark': '#1a1a1a',
-            'bg_medium': '#2d2d2d',
-            'accent': '#3498db',
-            'accent_hover': '#2980b9',
-            'success': '#2ecc71',
-            'danger': '#e74c3c',
-            'text': '#ffffff',
-            'text_secondary': '#b3b3b3'
+            'bg_dark': '#121212',      # Main background
+            'bg_medium': '#181818',     # Card background
+            'bg_light': '#282828',      # Hover state
+            'sidebar_bg': '#000000',    # Sidebar background
+            'accent': '#1DB954',        # Spotify green
+            'accent_hover': '#1ed760',  # Lighter green
+            'success': '#1DB954',
+            'danger': '#E74C3C',
+            'text': '#FFFFFF',
+            'text_secondary': '#B3B3B3',
+            'divider': '#282828'
         }
         
         self.root.configure(bg=self.colors['bg_dark'])
         self.root.resizable(False, False)
         self.centralizar_janela(900, 650)  # Slightly larger for better spacing
 
-        # Canvas for dollar animation (place it behind all other widgets)
+        # Create main container for all widgets
+        self.main_container = tk.Frame(self.root)
+        self.main_container.pack(fill="both", expand=True)
+
+        # Canvas for dollar animation (place it behind all widgets)
         self.canvas = tk.Canvas(
-            self.root,
+            self.main_container,
             bg=self.colors['bg_dark'],
             highlightthickness=0,
             width=900,
             height=650
         )
         self.canvas.place(x=0, y=0, relwidth=1, relheight=1)
-        self.canvas.lower()  # Put canvas behind all other widgets
+        
+        # Create content frame that will be above canvas
+        self.content_frame = tk.Frame(
+            self.main_container,
+            bg=self.colors['bg_dark']
+        )
+        self.content_frame.place(x=0, y=0, relwidth=1, relheight=1)
         
         # Dollar symbols for animation
         self.dollar_symbols = []
@@ -65,20 +78,30 @@ class PainelApp:
     def setup_styles(self):
         style = ttk.Style()
         style.theme_use('clam')
-        
-        # Configure modern looking Combobox
+
+        # Configure Spotify-like Combobox
         style.configure("TCombobox",
-            fieldbackground=self.colors['bg_medium'],
-            background=self.colors['bg_medium'],
+            fieldbackground=self.colors['bg_light'],
+            background=self.colors['bg_light'],
             foreground=self.colors['text'],
             arrowcolor=self.colors['accent'],
             selectbackground=self.colors['accent'],
             selectforeground=self.colors['text'])
         
-        # Configure modern looking Entry
+        style.map('TCombobox',
+            fieldbackground=[('readonly', self.colors['bg_light'])],
+            selectbackground=[('readonly', self.colors['accent'])],
+            background=[('readonly', self.colors['bg_light'])])
+
+        # Configure Spotify-like Entry
         style.configure("TEntry",
-            fieldbackground=self.colors['bg_medium'],
-            foreground=self.colors['text'])
+            fieldbackground=self.colors['bg_light'],
+            foreground=self.colors['text'],
+            borderwidth=0)
+        
+        style.map('TEntry',
+            fieldbackground=[('focus', self.colors['bg_light'])],
+            bordercolor=[('focus', self.colors['accent'])])
 
     def create_gradient_frame(self, parent, color1, color2):
         frame = tk.Frame(parent, bg=color1, height=2)
@@ -156,86 +179,194 @@ class PainelApp:
         self.animate_dollars()
 
     def setup_ui(self):
-        # Header Section with gradient
-        header_frame = tk.Frame(self.root, bg='', pady=20)  # Transparent background
-        header_frame.pack(fill="x", padx=20)
-        
-        gradient = self.create_gradient_frame(header_frame, self.colors['accent'], self.colors['bg_dark'])
-        gradient.pack(fill="x", pady=(0, 15))
+        # Create sidebar
+        sidebar = tk.Frame(self.content_frame, bg=self.colors['sidebar_bg'], width=250)
+        sidebar.pack(side="left", fill="y")
+        sidebar.pack_propagate(False)  # Maintain width
 
-        self.bem_vindo_label = tk.Label(
-            header_frame,
-            text="Future MT5 Trading Panel",
-            font=("Helvetica", 24, "bold"),
+        # Logo section
+        logo_frame = tk.Frame(sidebar, bg=self.colors['sidebar_bg'], pady=20)
+        logo_frame.pack(fill="x")
+
+        logo_label = tk.Label(
+            logo_frame,
+            text="🚀 Future MT5",
+            font=("Helvetica", 20, "bold"),
             fg=self.colors['accent'],
-            bg=self.colors['bg_dark']
+            bg=self.colors['sidebar_bg']
         )
-        self.bem_vindo_label.pack()
+        logo_label.pack(pady=10)
 
+        # Balance display in sidebar
         self.saldo_label = tk.Label(
-            header_frame,
+            sidebar,
             text="Saldo: ---",
-            font=("Helvetica", 16),
+            font=("Helvetica", 14),
             fg=self.colors['success'],
-            bg=self.colors['bg_dark']
+            bg=self.colors['sidebar_bg']
         )
         self.saldo_label.pack(pady=10)
 
-        # Options Section
-        options_frame = tk.Frame(self.root, bg='')  # Transparent background
-        options_frame.pack(pady=20, padx=30)
+        # Navigation menu with hover effects
+        menu_items = [
+            ("📊 Trading", self.colors['accent'], True),
+            ("📈 Análise", self.colors['text_secondary'], False),
+            ("⚙️ Configurações", self.colors['text_secondary'], False)
+        ]
 
-        # Create a modern looking container for options
-        container = tk.Frame(options_frame, bg=self.colors['bg_medium'], padx=20, pady=20)
-        container.pack(fill="x")
+        self.menu_buttons = []
+        for text, color, active in menu_items:
+            btn = tk.Button(
+                sidebar,
+                text=text,
+                font=("Helvetica", 12),
+                fg=color,
+                bg=self.colors['sidebar_bg'],
+                bd=0,
+                relief="flat",
+                activebackground=self.colors['bg_light'],
+                activeforeground=self.colors['text'],
+                cursor="hand2",
+                anchor="w",
+                padx=20,
+                pady=12,
+                width=25
+            )
+            if active:
+                btn.configure(bg=self.colors['bg_light'])
+            
+            # Bind hover events
+            btn.bind('<Enter>', lambda e, b=btn: self.on_menu_hover(b, True))
+            btn.bind('<Leave>', lambda e, b=btn: self.on_menu_hover(b, False))
+            
+            btn.pack(fill="x", pady=1)
+            self.menu_buttons.append(btn)
 
-        # Trading Options
-        self.combo_ativo = self.create_combobox(container, self.ativo_selecionado)
-        self.add_labeled_widget(container, "Ativo Trading:", 0, self.combo_ativo)
-        
-        self.combo_timeframe = self.create_combobox(
-            container,
-            self.timeframe_selecionado,
-            ["M1", "M5", "M15", "M30", "H1", "H4", "D1"]
-        )
-        self.add_labeled_widget(container, "Timeframe:", 1, self.combo_timeframe)
-        
-        self.entry_lote = self.create_entry(container, self.lote_selecionado)
-        self.add_labeled_widget(container, "Tamanho do Lote:", 2, self.entry_lote)
+        # Main content area
+        main_content = tk.Frame(self.content_frame, bg=self.colors['bg_dark'])
+        main_content.pack(side="left", fill="both", expand=True)
 
-        # Modern update button
-        self.btn_atualizar_ativos = tk.Button(
-            container,
-            text="🔄 Atualizar Ativos",
-            command=self.carregar_ativos,
-            bg=self.colors['accent'],
+        # Header in main content
+        header = tk.Frame(main_content, bg=self.colors['bg_dark'], pady=20)
+        header.pack(fill="x", padx=30)
+
+        tk.Label(
+            header,
+            text="Trading Panel",
+            font=("Helvetica", 24, "bold"),
             fg=self.colors['text'],
-            font=("Helvetica", 10, "bold"),
-            activebackground=self.colors['accent_hover'],
+            bg=self.colors['bg_dark']
+        ).pack(anchor="w")
+
+        # Trading options card
+        options_card = tk.Frame(
+            main_content,
+            bg=self.colors['bg_medium'],
+            padx=25,
+            pady=25,
+            highlightthickness=1,
+            highlightbackground=self.colors['divider']
+        )
+        options_card.pack(fill="x", padx=30, pady=20)
+
+        # Trading options grid
+        options_grid = tk.Frame(options_card, bg=self.colors['bg_medium'])
+        options_grid.pack(fill="x")
+
+        # Asset selection with update button in one row
+        asset_frame = tk.Frame(options_grid, bg=self.colors['bg_medium'])
+        asset_frame.pack(fill="x", pady=5)
+
+        tk.Label(
+            asset_frame,
+            text="Ativo Trading",
+            font=("Helvetica", 12),
+            fg=self.colors['text_secondary'],
+            bg=self.colors['bg_medium']
+        ).pack(side="left")
+
+        self.combo_ativo = self.create_combobox(asset_frame, self.ativo_selecionado)
+        self.combo_ativo.pack(side="left", padx=20)
+
+        self.btn_atualizar_ativos = tk.Button(
+            asset_frame,
+            text="🔄 Atualizar",
+            command=self.carregar_ativos,
+            bg=self.colors['bg_light'],
+            fg=self.colors['text'],
+            font=("Helvetica", 10),
+            activebackground=self.colors['accent'],
+            activeforeground=self.colors['text'],
             relief="flat",
             padx=15,
             pady=5,
             cursor="hand2"
         )
-        self.btn_atualizar_ativos.grid(row=0, column=2, padx=20, pady=5, sticky="w")
+        self.btn_atualizar_ativos.pack(side="left")
 
-        # Control Buttons Section
-        button_frame = tk.Frame(self.root, bg='')  # Transparent background
-        button_frame.pack(pady=20)
+        # Timeframe selection
+        timeframe_frame = tk.Frame(options_grid, bg=self.colors['bg_medium'])
+        timeframe_frame.pack(fill="x", pady=15)
+
+        tk.Label(
+            timeframe_frame,
+            text="Timeframe",
+            font=("Helvetica", 12),
+            fg=self.colors['text_secondary'],
+            bg=self.colors['bg_medium']
+        ).pack(side="left")
+
+        self.combo_timeframe = self.create_combobox(
+            timeframe_frame,
+            self.timeframe_selecionado,
+            ["M1", "M5", "M15", "M30", "H1", "H4", "D1"]
+        )
+        self.combo_timeframe.pack(side="left", padx=20)
+
+        # Lot size input
+        lot_frame = tk.Frame(options_grid, bg=self.colors['bg_medium'])
+        lot_frame.pack(fill="x", pady=5)
+
+        tk.Label(
+            lot_frame,
+            text="Tamanho do Lote",
+            font=("Helvetica", 12),
+            fg=self.colors['text_secondary'],
+            bg=self.colors['bg_medium']
+        ).pack(side="left")
+
+        self.entry_lote = self.create_entry(lot_frame, self.lote_selecionado)
+        self.entry_lote.pack(side="left", padx=20)
+
+        # Control buttons in a card
+        control_card = tk.Frame(
+            main_content,
+            bg=self.colors['bg_medium'],
+            padx=25,
+            pady=25,
+            highlightthickness=1,
+            highlightbackground=self.colors['divider']
+        )
+        control_card.pack(fill="x", padx=30, pady=20)
+
+        button_frame = tk.Frame(control_card, bg=self.colors['bg_medium'])
+        button_frame.pack(fill="x")
 
         self.btn_iniciar = tk.Button(
             button_frame,
             text="▶ Iniciar Análise com o Robô",
             command=self.iniciar_robô,
-            bg=self.colors['success'],
+            bg=self.colors['accent'],
             fg=self.colors['text'],
             font=("Helvetica", 14, "bold"),
-            activebackground="#27ae60",
+            activebackground=self.colors['accent_hover'],
             relief="flat",
-            width=25,
+            width=30,
             state="disabled",
             cursor="hand2",
-            pady=10
+            pady=12,
+            borderwidth=0,
+            highlightthickness=0
         )
         self.btn_iniciar.grid(row=0, column=0, padx=10)
 
@@ -243,39 +374,39 @@ class PainelApp:
             button_frame,
             text="⏹ Parar Análise",
             command=self.parar_robô,
-            bg=self.colors['danger'],
+            bg=self.colors['bg_light'],
             fg=self.colors['text'],
             font=("Helvetica", 14, "bold"),
-            activebackground="#c0392b",
+            activebackground=self.colors['bg_dark'],
             relief="flat",
-            width=20,
+            width=25,
             cursor="hand2",
-            pady=10
+            pady=12,
+            borderwidth=0,
+            highlightthickness=0
         )
         self.btn_parar.grid(row=0, column=1, padx=10)
 
-        # Logs Section
-        logs_frame = tk.Frame(self.root, bg='')  # Transparent background
-        logs_frame.pack(pady=20, fill="both", expand=True, padx=30)
-
-        log_header = tk.Frame(logs_frame, bg=self.colors['bg_dark'])
-        log_header.pack(fill="x")
+        # Logs card
+        logs_card = tk.Frame(
+            main_content,
+            bg=self.colors['bg_medium'],
+            padx=25,
+            pady=25,
+            highlightthickness=1,
+            highlightbackground=self.colors['divider']
+        )
+        logs_card.pack(fill="both", expand=True, padx=30, pady=20)
 
         tk.Label(
-            log_header,
+            logs_card,
             text="📋 Logs do Sistema",
             font=("Helvetica", 14, "bold"),
             fg=self.colors['text'],
-            bg=self.colors['bg_dark']
-        ).pack(anchor="w")
+            bg=self.colors['bg_medium']
+        ).pack(anchor="w", pady=(0, 10))
 
-        # Modern looking log text area
-        text_frame = tk.Frame(
-            logs_frame,
-            bg=self.colors['bg_medium'],
-            padx=2,
-            pady=2
-        )
+        text_frame = tk.Frame(logs_card, bg=self.colors['bg_light'])
         text_frame.pack(fill="both", expand=True)
 
         self.text_log = tk.Text(
@@ -286,25 +417,45 @@ class PainelApp:
             fg=self.colors['text'],
             insertbackground=self.colors['text'],
             relief="flat",
-            font=("Consolas", 10),
-            padx=10,
-            pady=10
+            font=("Consolas", 11),
+            padx=15,
+            pady=15,
+            selectbackground=self.colors['accent'],
+            selectforeground=self.colors['text']
         )
         self.text_log.pack(side="left", fill="both", expand=True)
 
-        # Modern scrollbar
-        self.scrollbar = ttk.Scrollbar(text_frame, command=self.text_log.yview)
-        self.scrollbar.pack(side="right", fill="y")
+        # Spotify-style scrollbar
+        self.scrollbar = tk.Scrollbar(
+            text_frame,
+            command=self.text_log.yview,
+            width=10,
+            relief="flat",
+            troughcolor=self.colors['bg_medium'],
+            bg=self.colors['bg_light']
+        )
+        self.scrollbar.pack(side="right", fill="y", padx=2)
 
         self.text_log.config(yscrollcommand=self.scrollbar.set)
         self.log_system.conectar_interface(self.text_log)
 
-        # Footer with gradient
-        footer_frame = tk.Frame(self.root, bg='')  # Transparent background
-        footer_frame.pack(fill="x", pady=(0, 10))
+        # Status bar (like Spotify's player bar)
+        status_bar = tk.Frame(
+            self.content_frame,
+            bg=self.colors['bg_light'],
+            height=30
+        )
+        status_bar.pack(side="bottom", fill="x")
         
-        gradient = self.create_gradient_frame(footer_frame, self.colors['bg_dark'], self.colors['accent'])
-        gradient.pack(fill="x")
+        # Add status text to status bar
+        status_text = tk.Label(
+            status_bar,
+            text="Connected to MT5",
+            font=("Helvetica", 10),
+            fg=self.colors['text_secondary'],
+            bg=self.colors['bg_light']
+        )
+        status_text.pack(side="left", padx=10)
 
         self.carregar_ativos()
 
@@ -330,24 +481,39 @@ class PainelApp:
         combo = ttk.Combobox(
             parent,
             textvariable=variable,
-            width=25,
+            width=30,
             values=values or [],
             style="TCombobox"
         )
+        combo.configure(background=self.colors['bg_light'])
         if values:
             combo.current(1)
         return combo
 
+    def on_menu_hover(self, button, entering):
+        """Handle menu button hover effects"""
+        if button not in self.menu_buttons or button == self.menu_buttons[0]:
+            return
+        if entering:
+            button.configure(bg=self.colors['bg_light'])
+        else:
+            button.configure(bg=self.colors['sidebar_bg'])
+
     def create_entry(self, parent, variable):
-        return tk.Entry(
+        entry = tk.Entry(
             parent,
             textvariable=variable,
             font=("Helvetica", 12),
-            bg=self.colors['bg_medium'],
+            bg=self.colors['bg_light'],
             fg=self.colors['text'],
             relief="flat",
-            width=25
+            width=25,
+            insertbackground=self.colors['text']  # Cursor color
         )
+        # Add focus events for highlight effect
+        entry.bind("<FocusIn>", lambda e: entry.configure(bg=self.colors['bg_dark']))
+        entry.bind("<FocusOut>", lambda e: entry.configure(bg=self.colors['bg_light']))
+        return entry
 
     def carregar_ativos(self):
         try:
