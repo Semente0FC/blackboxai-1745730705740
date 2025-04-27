@@ -112,9 +112,8 @@ class PainelApp:
         # More varied symbols with money theme (focusing on the most visible ones)
         symbol = random.choice(['💰', '💵', '💸', '$'])
         
-        # Random semi-transparent green color
-        alpha = random.randint(5, 15)  # Even more transparent (5-15% opacity)
-        color = f'{self.colors["success"]}{alpha:02x}'
+        # Use a single semi-transparent color for better performance
+        color = '#1DB95430'  # Spotify green with 19% opacity
         
         # Random size but keep it subtle
         size = random.randint(12, 20)
@@ -125,7 +124,7 @@ class PainelApp:
             text=symbol,
             font=('Helvetica', size),
             fill=color,
-            angle=random.randint(-30, 30)  # Random rotation
+            angle=random.randint(-20, 20)  # Slightly reduced rotation range
         )
         
         # Slower falling speed for better effect
@@ -145,7 +144,7 @@ class PainelApp:
             # Move dollar symbol down with slight side movement
             self.canvas.move(
                 dollar['id'],
-                math.sin(time.time() * dollar['speed']) * 0.3,  # Subtle side-to-side movement
+                math.sin(time.time() * dollar['speed']) * 0.2,  # More subtle side-to-side movement
                 dollar['speed']
             )
             
@@ -164,11 +163,11 @@ class PainelApp:
                 self.dollar_symbols.remove(dollar)
         
         # Add new dollar symbols randomly (reduced frequency)
-        if random.random() < 0.02:  # 2% chance each frame for fewer symbols
+        if random.random() < 0.015:  # 1.5% chance each frame for even fewer symbols
             self.create_dollar_symbol()
         
         # Schedule next animation frame
-        self.root.after(50, self.animate_dollars)
+        self.root.after(60, self.animate_dollars)  # Slightly slower update for better performance
 
     def start_dollar_animation(self):
         # Create initial dollar symbols
