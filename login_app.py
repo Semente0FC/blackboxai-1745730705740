@@ -23,7 +23,7 @@ class LoginApp:
         
         self.root.configure(bg=self.colors['bg_dark'])
         self.root.resizable(False, False)
-        self.centralizar_janela(500, 600)
+        self.centralizar_janela(400, 600)
         self.setup_ui()
         self.carregar_login_salvo()
         
@@ -43,8 +43,8 @@ class LoginApp:
 
     def setup_ui(self):
         # Main container with modern shadow effect
-        main_container = tk.Frame(self.root, bg=self.colors['bg_dark'], padx=20, pady=20)
-        main_container.place(relx=0.5, rely=0.5, anchor="center", width=450, height=500)
+        main_container = tk.Frame(self.root, bg=self.colors['bg_dark'])
+        main_container.pack(expand=True, fill="both", padx=20, pady=20)
 
         # Header with gradient
         header_frame = tk.Frame(main_container, bg=self.colors['bg_dark'])
@@ -85,16 +85,26 @@ class LoginApp:
         subtitle_label.pack()
 
         # Login form container
-        self.card = tk.Frame(main_container, bg=self.colors['bg_medium'], padx=30, pady=30)
-        self.card.pack(fill="both", expand=True)
+        # Login card with border
+        self.card = tk.Frame(
+            main_container,
+            bg=self.colors['bg_medium'],
+            highlightbackground=self.colors['accent'],
+            highlightthickness=1
+        )
+        self.card.pack(expand=True, fill="both", padx=10, pady=10)
+        
+        # Inner padding frame
+        self.inner_frame = tk.Frame(self.card, bg=self.colors['bg_medium'])
+        self.inner_frame.pack(expand=True, fill="both", padx=20, pady=20)
 
-        # Input fields
-        self.entry_server = self.criar_linha_input("🌐 Servidor MT5")
-        self.entry_login = self.criar_linha_input("👤 Login")
-        self.entry_password = self.criar_linha_input("🔒 Senha", show="•")
+        # Input fields in inner frame
+        self.entry_server = self.criar_linha_input(self.inner_frame, "🌐 Servidor MT5")
+        self.entry_login = self.criar_linha_input(self.inner_frame, "👤 Login")
+        self.entry_password = self.criar_linha_input(self.inner_frame, "🔒 Senha", show="•")
 
-        # Checkboxes container
-        check_container = tk.Frame(self.card, bg=self.colors['bg_medium'])
+        # Checkboxes container in inner frame
+        check_container = tk.Frame(self.inner_frame, bg=self.colors['bg_medium'])
         check_container.pack(fill="x", pady=15)
 
         self.check_real = tk.BooleanVar()
@@ -104,26 +114,33 @@ class LoginApp:
         self.create_modern_checkbox(check_container, "Conta Real", self.check_real, side=tk.LEFT)
         self.create_modern_checkbox(check_container, "Salvar Dados", self.check_save, side=tk.RIGHT)
 
-        # Login button with modern styling and more prominent appearance
-        button_frame = tk.Frame(self.card, bg=self.colors['bg_medium'])
-        button_frame.pack(fill="x", pady=(20, 10))
+        # Button container for extra padding and border
+        button_container = tk.Frame(
+            self.inner_frame,
+            bg=self.colors['bg_medium'],
+            padx=2,
+            pady=2,
+            highlightbackground=self.colors['success'],
+            highlightthickness=1
+        )
+        button_container.pack(fill="x", pady=(30, 10))
 
+        # Extra large prominent login button
         self.btn_login = tk.Button(
-            button_frame,
+            button_container,
             text="CONECTAR AO MT5",
             command=self.login,
-            font=("Helvetica", 14, "bold"),
+            font=("Helvetica", 16, "bold"),
             bg=self.colors['success'],
             fg=self.colors['text'],
             activebackground=self.colors['accent_hover'],
             activeforeground=self.colors['text'],
             relief="flat",
             cursor="hand2",
-            pady=15,
-            padx=30,
-            width=25
+            height=2,
+            width=30
         )
-        self.btn_login.pack(expand=True, pady=10)
+        self.btn_login.pack(expand=True, fill="both", padx=5, pady=5)
 
         # Footer with gradient
         footer_frame = tk.Frame(main_container, bg=self.colors['bg_dark'])
@@ -132,8 +149,8 @@ class LoginApp:
         gradient = self.create_gradient_frame(footer_frame, self.colors['bg_dark'], self.colors['accent'])
         gradient.pack(fill="x")
 
-    def criar_linha_input(self, placeholder, show=None):
-        container = tk.Frame(self.card, bg=self.colors['bg_medium'])
+    def criar_linha_input(self, parent, placeholder, show=None):
+        container = tk.Frame(parent, bg=self.colors['bg_medium'])
         container.pack(fill="x", pady=10)
 
         entry = tk.Entry(
