@@ -104,21 +104,26 @@ class LoginApp:
         self.create_modern_checkbox(check_container, "Conta Real", self.check_real, side=tk.LEFT)
         self.create_modern_checkbox(check_container, "Salvar Dados", self.check_save, side=tk.RIGHT)
 
-        # Login button with modern styling
+        # Login button with modern styling and more prominent appearance
+        button_frame = tk.Frame(self.card, bg=self.colors['bg_medium'])
+        button_frame.pack(fill="x", pady=(20, 10))
+
         self.btn_login = tk.Button(
-            self.card,
-            text="CONECTAR",
+            button_frame,
+            text="CONECTAR AO MT5",
             command=self.login,
-            font=("Helvetica", 12, "bold"),
-            bg=self.colors['accent'],
+            font=("Helvetica", 14, "bold"),
+            bg=self.colors['success'],
             fg=self.colors['text'],
             activebackground=self.colors['accent_hover'],
             activeforeground=self.colors['text'],
             relief="flat",
             cursor="hand2",
-            pady=12
+            pady=15,
+            padx=30,
+            width=25
         )
-        self.btn_login.pack(fill="x", pady=(20, 10))
+        self.btn_login.pack(expand=True, pady=10)
 
         # Footer with gradient
         footer_frame = tk.Frame(main_container, bg=self.colors['bg_dark'])
@@ -171,12 +176,20 @@ class LoginApp:
         cb.pack()
 
     def setup_hover_events(self):
-        self.btn_login.bind("<Enter>", lambda e: self.btn_login.config(
-            bg=self.colors['accent_hover']
-        ))
-        self.btn_login.bind("<Leave>", lambda e: self.btn_login.config(
-            bg=self.colors['accent']
-        ))
+        def on_enter(e):
+            self.btn_login.config(
+                bg=self.colors['accent_hover'],
+                relief="flat"
+            )
+
+        def on_leave(e):
+            self.btn_login.config(
+                bg=self.colors['success'],
+                relief="flat"
+            )
+
+        self.btn_login.bind("<Enter>", on_enter)
+        self.btn_login.bind("<Leave>", on_leave)
 
     def on_entry_focus_in(self, event, placeholder):
         if event.widget.get() == placeholder:
@@ -235,7 +248,8 @@ class LoginApp:
         self.btn_login.config(
             state="disabled",
             text="CONECTANDO...",
-            bg=self.colors['bg_light']
+            bg=self.colors['bg_light'],
+            cursor="wait"
         )
         self.root.update()
 
@@ -247,8 +261,9 @@ class LoginApp:
                 )
                 self.btn_login.config(
                     state="normal",
-                    text="CONECTAR",
-                    bg=self.colors['accent']
+                    text="CONECTAR AO MT5",
+                    bg=self.colors['success'],
+                    cursor="hand2"
                 )
                 return
 
@@ -269,6 +284,7 @@ class LoginApp:
             self.entry_password.config(fg=self.colors['text_secondary'], show="")
             self.btn_login.config(
                 state="normal",
-                text="CONECTAR",
-                bg=self.colors['accent']
+                text="CONECTAR AO MT5",
+                bg=self.colors['success'],
+                cursor="hand2"
             )
